@@ -16,6 +16,22 @@ const addFavorite = async (req: Request, res: Response) => {
       .status(400)
       .json({ success: false, data: null, message: "Car park no is required" });
   }
+
+  const carparkExitsQuery = sql`
+    SELECT EXISTS (
+      SELECT 1
+      FROM carparks
+      WHERE car_park_no = ${car_park_no}
+    );
+  `
+  const isLegalCarparkNo = db.values(carparkExitsQuery)[0][0] as number;
+
+  if (!isLegalCarparkNo) {
+    return res
+      .status(400)
+      .json({ success: false, data: null, message: "Invalid car park no" });
+  }
+
   const query = sql`
     INSERT INTO favorites (user_id, car_park_no)
     VALUES (${user_id}, ${car_park_no})
